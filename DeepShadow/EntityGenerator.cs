@@ -98,15 +98,14 @@ namespace DeepShadow
                 else
                 {
                     Write($"{classVariable}.{prop.Name} = ");
-                    if (propValue != null && propTypeName.Contains("String")) { Write("\""); }
+                    if (propValue != null && propTypeName.Contains("String")) { Write("@\""); }
                     string propValueText = propValue == null ? "null" : propValue.ToString();
                     if (propValue != null)
                     {
-                        //replace \ with \\
-                        propValueText = propValueText.Replace(@"\", @"\\");
-                        //replace crlf
-                        propValueText = propValueText.Replace("\r", "\\r");
-                        propValueText = propValueText.Replace("\n", "\\n");
+                        if (propTypeName.Contains("String"))
+                        {
+                            propValueText = propValueText.Replace(@"""", @"""""");
+                        }
                         if (propTypeName.Contains("Boolean"))
                         {
                             propValueText = propValueText.ToLower();

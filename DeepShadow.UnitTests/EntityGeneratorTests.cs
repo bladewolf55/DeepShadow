@@ -40,7 +40,7 @@ namespace DeepShadow.UnitTests
             a1.OrderedOn = DateTime.Parse( "1/1/2001");
             Customer a2 = new Customer();
             a2.CustomerId = 101;
-            a2.Name = "Calypso";
+            a2.Name = @"Calypso\r\n""Sub""";
             a2.Orders.Add(a1);
             a1.Customer = a2;
             Order a3 = new Order();
@@ -68,7 +68,7 @@ a1.CustomerId = 101;
 a1.OrderedOn = DateTime.Parse(""1/1/2001 12:00:00 AM"");
 DeepShadow.UnitTests.Customer a2 = new DeepShadow.UnitTests.Customer();
 a2.CustomerId = 101;
-a2.Name = ""Calypso"";
+a2.Name = @""Calypso\r\n""""Sub"""""";
 a2.Orders.Add(a1);
 DeepShadow.UnitTests.Order a3 = new DeepShadow.UnitTests.Order();
 a3.OrderId = 2;
@@ -84,7 +84,7 @@ return list;
 
         public static string CustomerExpected = @"DeepShadow.UnitTests.Customer a1 = new DeepShadow.UnitTests.Customer();
 a1.CustomerId = 101;
-a1.Name = ""Calypso"";
+a1.Name = @""Calypso\r\n""""Sub"""""";
 DeepShadow.UnitTests.Order a2 = new DeepShadow.UnitTests.Order();
 a2.OrderId = 1;
 a2.CustomerId = 101;
