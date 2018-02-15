@@ -1,33 +1,40 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DeepShadow
 {
     public static class Extensions
     {
         //https://stackoverflow.com/questions/3569811/how-to-know-if-a-propertyinfo-is-a-collection
-        public static bool IsNonStringEnumerable(this PropertyInfo pi)
+
+        
+        public static bool IsParentPrincipal(this PropertyInfo propInfo, object value)
         {
-            return pi != null && pi.PropertyType.IsNonStringEnumerable();
+            return value != null && !propInfo.PropertyType.Name.Contains("String") && propInfo.PropertyType.IsClass && !propInfo.IsNonStringEnumerable();
         }
 
-        public static bool IsNonStringEnumerable(this object instance)
+        public static bool IsChildCollection(this PropertyInfo propInfo, object value)
+        {
+            return value != null && !propInfo.PropertyType.Name.Contains("String") && propInfo.IsNonStringEnumerable();
+        }
+
+        private static bool IsNonStringEnumerable(this PropertyInfo propInfo)
+        {
+            return propInfo != null && propInfo.PropertyType.IsNonStringEnumerable();
+        }
+
+        private static bool IsNonStringEnumerable(this object instance)
         {
             return instance != null && instance.GetType().IsNonStringEnumerable();
         }
 
-        public static bool IsNonStringEnumerable(this Type type)
+        private static bool IsNonStringEnumerable(this Type type)
         {
             if (type == null || type == typeof(string))
                 return false;
             return typeof(IEnumerable).IsAssignableFrom(type);
         }
-
     }
 
 }

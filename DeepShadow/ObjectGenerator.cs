@@ -2,36 +2,79 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DeepShadow
 {
-    public class ObjectGenerator
+    public static class EntityGenerator
     {
-        private int _varNbr = 0;
-        List<StartedItem> startedItems = new List<StartedItem>();
+        private static int _varNbr = 0;
+        private static List<StartedItem> _startedItems = new List<StartedItem>();
+        private static string _result = "";
 
-        public void GenerateObjectsFromList(Type type, object list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "")
+        private static void InitVariables()
         {
-            foreach (var item in (IEnumerable)list)
-            {
-                GenerateObjects(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
-            }
+            _varNbr = 0;
+            _startedItems = new List<StartedItem>();
+            _result = "";
         }
 
-        public void GenerateObjectsFromList<T>(T list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class, IEnumerable
+        /// <summary>
+        /// Returns C# code for all entities related to the supplied entity
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public static string GenerateEntities<T>(this T entity) where T: class
+        {
+            InitVariables();
+            if (_varNbr == 0)
+            {
+                string className = entity.GetType().FullName;
+                WriteToResult($"{className} entity = new {className}();\r\n");
+            }
+            GenerateEntities(entity);
+            WriteToResult($"\r\nreturn entity;");
+            return _result;
+        }
+
+        /// <summary>
+        /// Returns C# code for all entities related to the supplied list of entities
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static string GenerateEntities<T>( IEnumerable<T> list) where T : class
+        {
+            InitVariables();
+            if (_varNbr == 0)
+            {
+                string className = list.First() .GetType().FullName;
+                WriteToResult($"List<{className}> list = new List<{className}>();\r\n");
+            }
+            GenerateEntities(list);
+            WriteToResult($"\r\nreturn list;");
+            return _result;
+        }
+
+        private static void GenerateEntities<T>(IEnumerable<T> list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
         {
             foreach (var item in list)
             {
-                GenerateObjects(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
+                GenerateEntities(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
             }
         }
 
-        public void GenerateObjects<T>(T item, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
+        private static void GenerateEntities(Type type, object list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "")
         {
-            var testItem = startedItems.SingleOrDefault(a => a.Item == item);
+            foreach (var item in (IEnumerable)list)
+            {
+                GenerateEntities(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
+            }
+        }
+
+        private static void GenerateEntities<T>(T item, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
+        {
+            var testItem = _startedItems.SingleOrDefault(a => a.Item == item);
             if (testItem != null)
             {
                 //still need to set prop, but not create model
@@ -40,23 +83,23 @@ namespace DeepShadow
             }
             _varNbr++;
             string classVariable = $"a{_varNbr}";
-            startedItems.Add(new StartedItem(classVariable, item));
-
             string className = item.GetType().FullName;
-            Console.WriteLine($"{className} {classVariable} = new {className}();");
+            _startedItems.Add(new StartedItem(classVariable, item));
+            WriteToResult($"{className} {classVariable} = new {className}();");
+
             foreach (var prop in item.GetType().GetProperties())
             {
                 object propValue = prop.GetValue(item);
                 string propTypeName = prop.PropertyType.FullName;
                 //is it a parent principle?
-                if (IsParentPrincipal(propValue, prop))
+                if (prop.IsParentPrincipal(propValue))
                 {
-                    GenerateObjects(propValue, classVariable, prop.Name);
+                    GenerateEntities(propValue, classVariable, prop.Name);
                 }
                 //is it a child collection?
-                else if (IsChildCollection(propValue, prop))
+                else if (prop.IsChildCollection(propValue))
                 {
-                    GenerateObjectsFromList(prop.PropertyType, propValue, classVariable, "", prop.Name);
+                    GenerateEntities(prop.PropertyType, propValue, classVariable, "", prop.Name);
                 }
                 else
                 {
@@ -82,40 +125,35 @@ namespace DeepShadow
                     Console.Write(propValueText);
                     if (propValue != null && propTypeName.Contains("String")) { Console.Write("\""); }
                     Console.Write(";");
-                    Console.WriteLine();
+                    WriteToResult();
                 }
             }
             SetNavigationProperty(parentVariable, parentCollectionProperty, parentPrincipleProperty, classVariable);
             //if no parent, add to a list
             if (String.IsNullOrWhiteSpace(parentVariable))
             {
-                Console.WriteLine($"list.Add({classVariable});");
+                WriteToResult($"list.Add({classVariable});");
             }
         }
 
-        private void SetNavigationProperty(string parentVariable, string parentCollectionProperty, string parentPrincipleProperty, string classVariable)
+        private static void SetNavigationProperty(string parentVariable, string parentCollectionProperty, string parentPrincipleProperty, string classVariable)
         {
             if (!String.IsNullOrWhiteSpace(parentVariable))
             {
                 if (!String.IsNullOrWhiteSpace(parentCollectionProperty))
                 {
-                    Console.WriteLine($"{parentVariable}.{parentCollectionProperty}.Add({classVariable});");
+                    WriteToResult($"{parentVariable}.{parentCollectionProperty}.Add({classVariable});");
                 };
                 if (!String.IsNullOrWhiteSpace(parentPrincipleProperty))
                 {
-                    Console.WriteLine($"{parentVariable}.{parentPrincipleProperty} = {classVariable};");
+                    WriteToResult($"{parentVariable}.{parentPrincipleProperty} = {classVariable};");
                 };
             }
         }
 
-        private bool IsParentPrincipal(object value, PropertyInfo property)
+        private static void WriteToResult(string msg = "\r\n")
         {
-            return value != null && !property.PropertyType.Name.Contains("String") && property.PropertyType.IsClass && !property.IsNonStringEnumerable();
-        }
-
-        private bool IsChildCollection(object value, PropertyInfo property)
-        {
-            return value != null && !property.PropertyType.Name.Contains("String") && property.IsNonStringEnumerable();
+            _result += msg + "\r\n";
         }
     }
 }
