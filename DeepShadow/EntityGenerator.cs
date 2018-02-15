@@ -28,10 +28,8 @@ namespace DeepShadow
         {
             if (entity == null) throw new ArgumentNullException("entity", "entity cannot be null");
             InitVariables();
-                string className = entity.GetType().FullName;
-                WriteLine($"{className} entity = new {className}();\r\n");
             GenerateEntitiesFromObject(entity, parentVariable:"");
-            WriteLine($"\r\nreturn entity;");
+            WriteLine($"\r\nreturn a1;");
             return _result;
         }
 

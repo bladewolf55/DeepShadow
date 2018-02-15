@@ -82,9 +82,7 @@ list.Add(a1);
 return list;
 ";
 
-        public static string CustomerExpected = @"DeepShadow.UnitTests.Customer entity = new DeepShadow.UnitTests.Customer();
-
-DeepShadow.UnitTests.Customer a1 = new DeepShadow.UnitTests.Customer();
+        public static string CustomerExpected = @"DeepShadow.UnitTests.Customer a1 = new DeepShadow.UnitTests.Customer();
 a1.CustomerId = 101;
 a1.Name = ""Calypso"";
 DeepShadow.UnitTests.Order a2 = new DeepShadow.UnitTests.Order();
@@ -101,7 +99,7 @@ a3.Customer = a1;
 a1.Orders.Add(a3);
 list.Add(a1);
 
-return entity;
+return a1;
 ";
     }
 
