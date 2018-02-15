@@ -10,6 +10,13 @@ namespace DeepShadow
         private static int _varNbr = 0;
         private static List<StartedItem> _startedItems = new List<StartedItem>();
         private static string _result = "";
+        private static GenerationFromType _generationFromType = GenerationFromType.List;
+
+        private enum GenerationFromType
+        {
+            List,
+            Object
+        }
 
         private static void InitVariables()
         {
@@ -27,6 +34,7 @@ namespace DeepShadow
         public static string GenerateEntitiesFromObject<T>(this T entity) where T: class
         {
             if (entity == null) throw new ArgumentNullException("entity", "entity cannot be null");
+            _generationFromType = GenerationFromType.Object;
             InitVariables();
             GenerateEntitiesFromObject(entity, parentVariable:"");
             WriteLine($"\r\nreturn a1;");
@@ -42,6 +50,7 @@ namespace DeepShadow
         public static string GenerateEntitiesFromList<T>(this IEnumerable<T> list) where T : class
         {
             if (list == null) throw new ArgumentNullException("list","list cannot be null");
+            _generationFromType = GenerationFromType.List;
             InitVariables();
                 string className = list.First() .GetType().FullName;
                 WriteLine($"List<{className}> list = new List<{className}>();\r\n");
@@ -122,8 +131,8 @@ namespace DeepShadow
                 }
             }
             SetNavigationProperty(parentVariable, parentCollectionProperty, parentPrincipleProperty, classVariable);
-            //if no parent, add to a list
-            if (String.IsNullOrWhiteSpace(parentVariable))
+            //if no parent and a list generation, add to a list
+            if (String.IsNullOrWhiteSpace(parentVariable) & _generationFromType == GenerationFromType.List)
             {
                 WriteLine($"list.Add({classVariable});");
             }

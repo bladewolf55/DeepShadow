@@ -97,7 +97,6 @@ a3.CustomerId = 101;
 a3.OrderedOn = DateTime.Parse(""5/5/2005 12:00:00 AM"");
 a3.Customer = a1;
 a1.Orders.Add(a3);
-list.Add(a1);
 
 return a1;
 ";
