@@ -24,16 +24,14 @@ namespace DeepShadow
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static string GenerateEntities<T>(this T entity) where T: class
+        public static string GenerateEntitiesFromObject<T>(this T entity) where T: class
         {
+            if (entity == null) throw new ArgumentNullException("entity", "entity cannot be null");
             InitVariables();
-            if (_varNbr == 0)
-            {
                 string className = entity.GetType().FullName;
-                WriteToResult($"{className} entity = new {className}();\r\n");
-            }
-            GenerateEntities(entity);
-            WriteToResult($"\r\nreturn entity;");
+                WriteLine($"{className} entity = new {className}();\r\n");
+            GenerateEntitiesFromObject(entity, parentVariable:"");
+            WriteLine($"\r\nreturn entity;");
             return _result;
         }
 
@@ -43,36 +41,34 @@ namespace DeepShadow
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
         /// <returns></returns>
-        public static string GenerateEntities<T>( IEnumerable<T> list) where T : class
+        public static string GenerateEntitiesFromList<T>(this IEnumerable<T> list) where T : class
         {
+            if (list == null) throw new ArgumentNullException("list","list cannot be null");
             InitVariables();
-            if (_varNbr == 0)
-            {
                 string className = list.First() .GetType().FullName;
-                WriteToResult($"List<{className}> list = new List<{className}>();\r\n");
-            }
-            GenerateEntities(list);
-            WriteToResult($"\r\nreturn list;");
+                WriteLine($"List<{className}> list = new List<{className}>();\r\n");
+            GenerateEntitiesFromList(list, parentVariable:"");
+            WriteLine($"\r\nreturn list;");
             return _result;
         }
 
-        private static void GenerateEntities<T>(IEnumerable<T> list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
+        private static void GenerateEntitiesFromList<T>(IEnumerable<T> list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
         {
             foreach (var item in list)
             {
-                GenerateEntities(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
+                GenerateEntitiesFromObject(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
             }
         }
 
-        private static void GenerateEntities(Type type, object list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "")
+        private static void GenerateEntitiesFromList(Type type, object list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "")
         {
             foreach (var item in (IEnumerable)list)
             {
-                GenerateEntities(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
+                GenerateEntitiesFromObject(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
             }
         }
 
-        private static void GenerateEntities<T>(T item, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
+        private static void GenerateEntitiesFromObject<T>(T item, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
         {
             var testItem = _startedItems.SingleOrDefault(a => a.Item == item);
             if (testItem != null)
@@ -85,7 +81,7 @@ namespace DeepShadow
             string classVariable = $"a{_varNbr}";
             string className = item.GetType().FullName;
             _startedItems.Add(new StartedItem(classVariable, item));
-            WriteToResult($"{className} {classVariable} = new {className}();");
+            WriteLine($"{className} {classVariable} = new {className}();");
 
             foreach (var prop in item.GetType().GetProperties())
             {
@@ -94,17 +90,17 @@ namespace DeepShadow
                 //is it a parent principle?
                 if (prop.IsParentPrincipal(propValue))
                 {
-                    GenerateEntities(propValue, classVariable, prop.Name);
+                    GenerateEntitiesFromObject(propValue, classVariable, prop.Name);
                 }
                 //is it a child collection?
                 else if (prop.IsChildCollection(propValue))
                 {
-                    GenerateEntities(prop.PropertyType, propValue, classVariable, "", prop.Name);
+                    GenerateEntitiesFromList(prop.PropertyType, propValue, classVariable, "", prop.Name);
                 }
                 else
                 {
-                    Console.Write($"{classVariable}.{prop.Name} = ");
-                    if (propValue != null && propTypeName.Contains("String")) { Console.Write("\""); }
+                    Write($"{classVariable}.{prop.Name} = ");
+                    if (propValue != null && propTypeName.Contains("String")) { Write("\""); }
                     string propValueText = propValue == null ? "null" : propValue.ToString();
                     if (propValue != null)
                     {
@@ -122,17 +118,17 @@ namespace DeepShadow
                             propValueText = $"DateTime.Parse(\"{propValueText}\")";
                         }
                     }
-                    Console.Write(propValueText);
-                    if (propValue != null && propTypeName.Contains("String")) { Console.Write("\""); }
-                    Console.Write(";");
-                    WriteToResult();
+                    Write(propValueText);
+                    if (propValue != null && propTypeName.Contains("String")) { Write("\""); }
+                    Write(";");
+                    WriteLine();
                 }
             }
             SetNavigationProperty(parentVariable, parentCollectionProperty, parentPrincipleProperty, classVariable);
             //if no parent, add to a list
             if (String.IsNullOrWhiteSpace(parentVariable))
             {
-                WriteToResult($"list.Add({classVariable});");
+                WriteLine($"list.Add({classVariable});");
             }
         }
 
@@ -142,18 +138,23 @@ namespace DeepShadow
             {
                 if (!String.IsNullOrWhiteSpace(parentCollectionProperty))
                 {
-                    WriteToResult($"{parentVariable}.{parentCollectionProperty}.Add({classVariable});");
+                    WriteLine($"{parentVariable}.{parentCollectionProperty}.Add({classVariable});");
                 };
                 if (!String.IsNullOrWhiteSpace(parentPrincipleProperty))
                 {
-                    WriteToResult($"{parentVariable}.{parentPrincipleProperty} = {classVariable};");
+                    WriteLine($"{parentVariable}.{parentPrincipleProperty} = {classVariable};");
                 };
             }
         }
 
-        private static void WriteToResult(string msg = "\r\n")
+        private static void WriteLine(string msg = "")
         {
             _result += msg + "\r\n";
+        }
+
+        private static void Write(string msg = "")
+        {
+            _result += msg;
         }
     }
 }
