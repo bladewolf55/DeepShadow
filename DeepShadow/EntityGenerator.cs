@@ -67,11 +67,20 @@ namespace DeepShadow
             }
         }
 
-        private static void GenerateEntitiesFromList(Type type, object list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "")
+        private static void GenerateEntitiesFromList(object list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "")
         {
+            int count = 0;
             foreach (var item in (IEnumerable)list)
             {
                 GenerateEntitiesFromObject(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
+                count++;
+            }
+            if (count == 0)
+            {
+                Type t = list.GetType();
+                string typeName = t.Name;
+                string entityName = t.GenericTypeArguments[0].FullName ;
+                GeneratePropertyForEmptyList(typeName , parentVariable, parentCollectionProperty, entityName);
             }
         }
 
@@ -102,7 +111,7 @@ namespace DeepShadow
                 //is it a child collection?
                 else if (prop.IsChildCollection(propValue))
                 {
-                    GenerateEntitiesFromList(prop.PropertyType, propValue, classVariable, "", prop.Name);
+                    GenerateEntitiesFromList(propValue, classVariable, "", prop.Name);
                 }
                 else
                 {
@@ -137,6 +146,13 @@ namespace DeepShadow
                 WriteLine($"list.Add({classVariable});");
             }
         }
+
+        private static void GeneratePropertyForEmptyList(string typeName, string classVariable, string propName, string entityName)
+        {
+            typeName = typeName.Contains("`") ? typeName.Substring(0, typeName.IndexOf("`")) : typeName;
+            WriteLine($"{classVariable}.{propName} = new {typeName}<{entityName}>();");
+        }
+
 
         private static void SetNavigationProperty(string parentVariable, string parentCollectionProperty, string parentPrincipleProperty, string classVariable)
         {

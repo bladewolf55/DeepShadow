@@ -13,7 +13,7 @@ namespace DeepShadow.UnitTests
         public class GenerateEntities_Should
         {
             [Fact]
-            public void GeneratesMatchingEntitiesFromList()
+            public void GenerateMatchingEntitiesFromList()
             {
                 var list = MockData.Orders();
                 var actual = list.GenerateEntitiesFromList();
@@ -21,14 +21,43 @@ namespace DeepShadow.UnitTests
             }
 
             [Fact]
-            public void GeneratesMatchingEntitiesFromEntity()
+            public void GenerateMatchingEntitiesFromEntity()
             {
                 var entity = MockData.Customer();
                 var actual = entity.GenerateEntitiesFromObject();
                 Assert.Equal(MockData.CustomerExpected, actual);
             }
+
+            [Fact]
+            public void GenerateEmptyListProperty()
+            {
+                var entity = MockData.CustomerWithoutOrders();
+                var actual = entity.GenerateEntitiesFromObject();
+                Assert.Contains("a1.Orders = new List<DeepShadow.UnitTests.Order>();", actual);
+            }
         }
     }
+
+
+    public class Customer
+    {
+        public int CustomerId { get; set; }
+        public string Name { get; set; }
+        //Nav
+        public List<Order> Orders { get; set; } = new List<Order>();
+    }
+
+    public class Order
+    {
+        public int OrderId { get; set; }
+        public int CustomerId { get; set; }
+        public DateTime OrderedOn { get; set; }
+        //Nav
+        public Customer Customer { get; set; }
+    }
+
+
+
     public static class MockData
     {
         public static List<Order> Orders()
@@ -55,10 +84,23 @@ namespace DeepShadow.UnitTests
             return list;
         }
 
+
+
         public static Customer Customer()
         {
             return Orders().Select(a => a.Customer).Distinct().Single();
         }
+
+        public static Customer CustomerWithoutOrders()
+        {
+            Customer a1 = new Customer();
+            a1.CustomerId = 101;
+            a1.Name = @"Calypso\r\n""Sub""";
+            a1.Orders = new List<Order>();
+            return a1;
+        }
+
+
 
         public static string OrdersExpected = @"List<DeepShadow.UnitTests.Order> list = new List<DeepShadow.UnitTests.Order>();
 
@@ -101,24 +143,5 @@ a1.Orders.Add(a3);
 return a1;
 ";
     }
-
-
-    public class Customer
-    {
-        public int CustomerId { get; set; }
-        public string Name { get; set; }
-        //Nav
-        public List<Order> Orders { get; set; } = new List<Order>();
-    }
-
-    public class Order
-    {
-        public int OrderId { get; set; }
-        public int CustomerId { get; set; }
-        public DateTime OrderedOn { get; set; }
-        //Nav
-        public Customer Customer { get; set; }
-    }
-
 
 }
