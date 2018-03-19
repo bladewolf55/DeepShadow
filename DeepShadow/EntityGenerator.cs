@@ -31,12 +31,12 @@ namespace DeepShadow
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static string GenerateEntitiesFromObject<T>(this T entity) where T: class
+        public static string GenerateEntitiesFromObject<T>(this T entity) where T : class
         {
             if (entity == null) throw new ArgumentNullException("entity", "entity cannot be null");
             _generationFromType = GenerationFromType.Object;
             InitVariables();
-            GenerateEntitiesFromObject(entity, parentVariable:"");
+            GenerateEntitiesFromObject(entity, parentVariable: "");
             WriteLine($"\r\nreturn a1;");
             return _result;
         }
@@ -49,12 +49,12 @@ namespace DeepShadow
         /// <returns></returns>
         public static string GenerateEntitiesFromList<T>(this IEnumerable<T> list) where T : class
         {
-            if (list == null) throw new ArgumentNullException("list","list cannot be null");
+            if (list == null) throw new ArgumentNullException("list", "list cannot be null");
             _generationFromType = GenerationFromType.List;
             InitVariables();
-                string className = list.First() .GetType().FullName;
-                WriteLine($"List<{className}> list = new List<{className}>();\r\n");
-            GenerateEntitiesFromList(list, parentVariable:"");
+            string className = list.First().GetType().FullName;
+            WriteLine($"List<{className}> list = new List<{className}>();\r\n");
+            GenerateEntitiesFromList(list, parentVariable: "");
             WriteLine($"\r\nreturn list;");
             return _result;
         }
@@ -79,8 +79,8 @@ namespace DeepShadow
             {
                 Type t = list.GetType();
                 string typeName = t.Name;
-                string entityName = t.GenericTypeArguments[0].FullName ;
-                GeneratePropertyForEmptyList(typeName , parentVariable, parentCollectionProperty, entityName);
+                string entityName = t.GenericTypeArguments[0].FullName;
+                GeneratePropertyForEmptyList(typeName, parentVariable, parentCollectionProperty, entityName);
             }
         }
 
@@ -93,54 +93,70 @@ namespace DeepShadow
                 SetNavigationProperty(parentVariable, parentCollectionProperty, parentPrincipleProperty, testItem.ClassVariable);
                 return;
             }
-            _varNbr++;
-            string classVariable = $"a{_varNbr}";
-            string className = item.GetType().FullName;
-            _startedItems.Add(new StartedItem(classVariable, item));
-            WriteLine($"{className} {classVariable} = new {className}();");
+            string classVariable = "";
 
-            foreach (var prop in item.GetType().GetProperties())
+            var type = item.GetType();
+            string className = type.FullName;
+            if (type.IsValueType || type.Name == "System.String")
             {
-                object propValue = prop.GetValue(item);
-                string propTypeName = prop.PropertyType.FullName;
-                //is it a parent principle?
-                if (prop.IsParentPrincipal(propValue))
+                //it's part of List of values
+                classVariable = item.ToString();
+                if (type.Name.Contains("String")) { classVariable = $"\"{classVariable}\""; }
+            }
+            else
+            {
+                _varNbr++;
+                classVariable = $"a{_varNbr}";
+                _startedItems.Add(new StartedItem(classVariable, item));
+                WriteLine($"{className} {classVariable} = new {className}();");
+
+                foreach (var prop in item.GetType().GetProperties())
                 {
-                    GenerateEntitiesFromObject(propValue, classVariable, prop.Name);
-                }
-                //is it a child collection?
-                else if (prop.IsChildCollection(propValue))
-                {
-                    GenerateEntitiesFromList(propValue, classVariable, "", prop.Name);
-                }
-                else
-                {
-                    Write($"{classVariable}.{prop.Name} = ");
-                    if (propValue != null && propTypeName.Contains("String")) { Write("@\""); }
-                    string propValueText = propValue == null ? "null" : propValue.ToString();
-                    if (propValue != null)
+                    object propValue = prop.GetValue(item);
+                    string propTypeName = prop.PropertyType.FullName;
+                    //is it a parent principle?
+                    if (prop.IsParentPrincipal(propValue))
                     {
-                        if (propTypeName.Contains("String"))
-                        {
-                            propValueText = propValueText.Replace(@"""", @"""""");
-                        }
-                        if (propTypeName.Contains("Boolean"))
-                        {
-                            propValueText = propValueText.ToLower();
-                        }
-                        if (propTypeName.Contains("DateTime"))
-                        {
-                            propValueText = $"DateTime.Parse(\"{propValueText}\")";
-                        }
-                        if (propTypeName.Contains("Decimal"))
-                        {
-                            propValueText = $"Convert.ToDecimal({propValueText})";
-                        }
+                        GenerateEntitiesFromObject(propValue, classVariable, prop.Name);
                     }
-                    Write(propValueText);
-                    if (propValue != null && propTypeName.Contains("String")) { Write("\""); }
-                    Write(";");
-                    WriteLine();
+                    //is it a child collection?
+                    else if (prop.IsChildCollection(propValue))
+                    {
+                        //is it a list of values?
+                        
+
+
+                        GenerateEntitiesFromList(propValue, classVariable, "", prop.Name);
+                    }
+                    else
+                    {
+                        Write($"{classVariable}.{prop.Name} = ");
+                        if (propValue != null && propTypeName.Contains("String")) { Write("@\""); }
+                        string propValueText = propValue == null ? "null" : propValue.ToString();
+                        if (propValue != null)
+                        {
+                            if (propTypeName.Contains("String"))
+                            {
+                                propValueText = propValueText.Replace(@"""", @"""""");
+                            }
+                            if (propTypeName.Contains("Boolean"))
+                            {
+                                propValueText = propValueText.ToLower();
+                            }
+                            if (propTypeName.Contains("DateTime"))
+                            {
+                                propValueText = $"DateTime.Parse(\"{propValueText}\")";
+                            }
+                            if (propTypeName.Contains("Decimal"))
+                            {
+                                propValueText = $"Convert.ToDecimal({propValueText})";
+                            }
+                        }
+                        Write(propValueText);
+                        if (propValue != null && propTypeName.Contains("String")) { Write("\""); }
+                        Write(";");
+                        WriteLine();
+                    }
                 }
             }
             SetNavigationProperty(parentVariable, parentCollectionProperty, parentPrincipleProperty, classVariable);

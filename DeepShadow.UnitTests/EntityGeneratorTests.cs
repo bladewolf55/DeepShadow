@@ -35,6 +35,14 @@ namespace DeepShadow.UnitTests
                 var actual = entity.GenerateEntitiesFromObject();
                 Assert.Contains("a1.Orders = new List<DeepShadow.UnitTests.Order>();", actual);
             }
+
+            [Fact]
+            public void GenerateMatchingStringList()
+            {
+                var entity = MockData.StringList();
+                var actual = entity.GenerateEntitiesFromList();
+                Assert.Equal(MockData.StringListExpected, actual);
+            }
         }
     }
 
@@ -43,6 +51,7 @@ namespace DeepShadow.UnitTests
     {
         public int CustomerId { get; set; }
         public string Name { get; set; }
+        public List<string> Codes {get;set;}
         //Nav
         public List<Order> Orders { get; set; } = new List<Order>();
     }
@@ -72,6 +81,7 @@ namespace DeepShadow.UnitTests
             Customer a2 = new Customer();
             a2.CustomerId = 101;
             a2.Name = @"Calypso\r\n""Sub""";
+            a2.Codes = StringList();
             a2.Orders.Add(a1);
             a1.Customer = a2;
             Order a3 = new Order();
@@ -101,6 +111,12 @@ namespace DeepShadow.UnitTests
             a1.Name = @"Calypso\r\n""Sub""";
             a1.Orders = new List<Order>();
             return a1; 
+        }
+
+        public static List<string> StringList()
+        {
+            List<string> a1 = new List<string>() { "a", "b", "1", "2" };
+            return a1;
         }
 
 
@@ -149,6 +165,19 @@ a1.Orders.Add(a3);
 
 return a1;
 ";
+
+        public static string StringListExpected = @"List<System.String> list = new List<System.String>();
+
+list.Add(""a"");
+list.Add(""b"");
+list.Add(""1"");
+list.Add(""2"");
+
+return list;
+";
+
+
     }
+
 
 }
