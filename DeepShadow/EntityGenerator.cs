@@ -132,6 +132,10 @@ namespace DeepShadow
                         {
                             propValueText = $"DateTime.Parse(\"{propValueText}\")";
                         }
+                        if (propTypeName.Contains("Decimal"))
+                        {
+                            propValueText = $"Convert.ToDecimal({propValueText})";
+                        }
                     }
                     Write(propValueText);
                     if (propValue != null && propTypeName.Contains("String")) { Write("\""); }
