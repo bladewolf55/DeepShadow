@@ -35,6 +35,30 @@ namespace DeepShadow
                 return false;
             return typeof(IEnumerable).IsAssignableFrom(type);
         }
+
+        //clf
+        public static bool IsValueOrStringEnumerable(this Type type)
+        {
+            if (type == null) return false;
+            if (type.IsArray) return true;
+            if (type.IsConstructedGenericType & hasGenericValueTypeArgument(type)) return true;
+            return false;
+        }
+
+        public static bool hasGenericValueTypeArgument(this Type type)
+        {
+            var types = type.GetGenericArguments();
+            if (types != null && types.Length == 1 )
+            {
+                Type t = types[0];
+                if (t.IsValueType || t == typeof(string))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
 
 }

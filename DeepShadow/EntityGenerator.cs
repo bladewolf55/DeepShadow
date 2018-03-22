@@ -97,7 +97,7 @@ namespace DeepShadow
 
             var type = item.GetType();
             string className = type.FullName;
-            if (type.IsValueType || type.Name == "System.String")
+            if (type.IsValueType || type.FullName == "System.String")
             {
                 //it's part of List of values
                 classVariable = item.ToString();
@@ -122,10 +122,18 @@ namespace DeepShadow
                     //is it a child collection?
                     else if (prop.IsChildCollection(propValue))
                     {
+                        Type propType = prop.PropertyType;
                         //is it a list of values?
-                        
-
-
+                        if (propType.IsValueOrStringEnumerable())
+                        {
+                            string initClass = propType.Name;
+                            if (initClass.Contains("`"))
+                            {
+                                initClass = initClass.Substring(0, initClass.IndexOf("`"));
+                            }
+                            string initType = propType.GenericTypeArguments[0].Name;
+                            WriteLine($"{classVariable}.{prop.Name} = new {initClass}<{initType}>();");
+                        }
                         GenerateEntitiesFromList(propValue, classVariable, "", prop.Name);
                     }
                     else
