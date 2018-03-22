@@ -58,7 +58,6 @@ namespace DeepShadow
             }
             return false;
         }
-
     }
 
 }

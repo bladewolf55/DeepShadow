@@ -11,6 +11,7 @@ namespace DeepShadow
         private static List<StartedItem> _startedItems = new List<StartedItem>();
         private static string _result = "";
         private static GenerationFromType _generationFromType = GenerationFromType.List;
+        private static bool _toConsole = false;
 
         private enum GenerationFromType
         {
@@ -31,8 +32,9 @@ namespace DeepShadow
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public static string GenerateEntitiesFromObject<T>(this T entity) where T : class
+        public static string GenerateEntitiesFromObject<T>(this T entity, bool toConsole = false) where T : class
         {
+            _toConsole = toConsole;
             if (entity == null) throw new ArgumentNullException("entity", "entity cannot be null");
             _generationFromType = GenerationFromType.Object;
             InitVariables();
@@ -47,8 +49,9 @@ namespace DeepShadow
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
         /// <returns></returns>
-        public static string GenerateEntitiesFromList<T>(this IEnumerable<T> list) where T : class
+        public static string GenerateEntitiesFromList<T>(this IEnumerable<T> list, bool toConsole = false) where T : class
         {
+            _toConsole = toConsole;
             if (list == null) throw new ArgumentNullException("list", "list cannot be null");
             _generationFromType = GenerationFromType.List;
             InitVariables();
@@ -200,11 +203,13 @@ namespace DeepShadow
         private static void WriteLine(string msg = "")
         {
             _result += msg + "\r\n";
+            if (_toConsole) { Console.WriteLine(msg); }
         }
 
         private static void Write(string msg = "")
         {
             _result += msg;
+            if (_toConsole) { Console.Write(msg); }
         }
     }
 }
