@@ -1,9 +1,58 @@
 
 ## ![](images/logo-128x128.png) an assembly to help generate unit test data from Entity Framework
 
+[//]: # (TOC Begin)
+* [Introduction](#introduction)
+* [The Problem](#the-problem)
+* [Enter DeepShadow](#enter-deepshadow)
+* [Masking Data](#masking-data)
+* [Complete Example](#complete-example)
+
+[//]: # (TOC End)
+
+
+## Introduction
 DeepShadow helps solve a specific yet common use case: the developer needs unit test data from complex models, and wishes she could use actual data with some modifications.
 
-For example, here are relatively simple parent-child domain classes. They map to SQL tables, and the application is using Entity Framework.
+What if she could do this?
+
+```csharp
+db.Customers.Take(2).GenerateEntitiesFromList(toConsole: true);
+```
+
+or this?
+```csharp
+File.WriteAllText("MockData.txt", db.Customers.Take(2).GenerateEntitiesFromList());
+```
+
+And get something like this?
+```csharp
+List<DeepShadowDbContext.Customer> list = new List<DeepShadowDbContext.Customer>();
+
+DeepShadowDbContext.Customer a1 = new DeepShadowDbContext.Customer();
+a1.CustomerId = 1;
+a1.Name = @"Nicolo Paganini";
+a1.Codes = new List<String>();
+a1.Codes.Add("A1");
+a1.Codes.Add("A2");
+a1.Codes.Add("A3");
+a1.Orders = new List<DeepShadowDbContext.Order>();
+list.Add(a1);
+DeepShadowDbContext.Customer a2 = new DeepShadowDbContext.Customer();
+a2.CustomerId = 2;
+a2.Name = @"Hilary Hahn";
+a2.Codes = new List<String>();
+a2.Codes.Add("A1");
+a2.Codes.Add("A2");
+a2.Codes.Add("A3");
+a2.Orders = new List<DeepShadowDbContext.Order>();
+list.Add(a2);
+
+return list;
+```
+
+## The Problem
+Here are relatively simple parent-child domain classes. They map to SQL tables, and the application is using Entity Framework.
 
 ```csharp
     public class Customer
