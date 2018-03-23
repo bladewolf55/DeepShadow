@@ -5,7 +5,7 @@ path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSB
 path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin
 
 rem Build Initializer
-msbuild /property:Configuration=Release ..\DeepShadow\DeepShadow.csproj 
+msbuild /t:Clean,Build /property:Configuration=Release ..\DeepShadow\DeepShadow.csproj 
 
 rem Package
-nuget pack ..\DeepShadow\DeepShadow.csproj -o Package
+nuget pack ..\DeepShadow\DeepShadow.csproj -o Package -Prop Configuration=Release
