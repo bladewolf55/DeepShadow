@@ -12,7 +12,7 @@ rem Delete everything in Package
 del Package\*.* /q
 
 rem Package
-nuget pack ..\DeepShadow\DeepShadow.nuspec -o Package
+nuget pack ..\DeepShadow\DeepShadow.csproj -o Package
 
 rem Publish
 nuget push Package\*.nupkg -Source https://api.nuget.org/v3/index.json

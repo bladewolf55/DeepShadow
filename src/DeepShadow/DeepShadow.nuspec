@@ -6,13 +6,15 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
+    <licenseUrl>https://raw.githubusercontent.com/bladewolf55/DeepShadow/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/bladewolf55/DeepShadow</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/bladewolf55/DeepShadow/images/logo-64x64.png</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/bladewolf55/DeepShadow/master/images/logo-64x64.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <releaseNotes>
+      Initial release
+    </releaseNotes>
     <copyright>Copyright 2018</copyright>
-    <tags>Tag1 Tag2</tags>
+    <tags>entity-framework test code-generator</tags>
   </metadata>
 </package>

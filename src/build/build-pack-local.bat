@@ -8,4 +8,4 @@ rem Build Initializer
 msbuild /property:Configuration=Release ..\DeepShadow\DeepShadow.csproj 
 
 rem Package
-nuget pack ..\DeepShadow\DeepShadow.nuspec -o Package
+nuget pack ..\DeepShadow\DeepShadow.csproj -o Package
