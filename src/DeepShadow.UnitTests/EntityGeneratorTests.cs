@@ -48,9 +48,18 @@ namespace DeepShadow.UnitTests
             public void IgnoreSuppliedProperties()
             {
                 var entity = MockData.ItemWithPropertiesToIgnore();
-                string[] ignoreProps = { "SetKeys", "LowerCaseName" };
-                var actual = entity.GenerateEntitiesFromObject(ignoreProps);
+                string[] ignoreProperties = { "SetKeys", "LowerCaseName" };
+                var actual = entity.GenerateEntitiesFromObject(ignoreProperties: ignoreProperties, ignoreTypes:null);
                 Assert.Equal(MockData.ItemWithPropertiesToIgnoreExpected, actual);
+            }
+
+            [Fact]
+            public void IgnoreSuppliedTypes()
+            {
+                var entity = MockData.ItemWithTypesToIgnore();
+                Type[] ignoreTypes = { typeof(Action) };
+                var actual = entity.GenerateEntitiesFromObject(ignoreProperties: null,ignoreTypes: ignoreTypes);
+                Assert.Equal(MockData.ItemWithTypesToIgnoreExpected, actual);
             }
         }
     }
@@ -84,6 +93,18 @@ namespace DeepShadow.UnitTests
             get { return () => { }; }
         }
         public string LowerCaseName { get { return Name.ToLower(); } set { Name = value; } }
+    }
+
+
+    public class ItemWithTypesToIgnore
+    {
+        public int ItemId { get; set; }
+        public string Name { get; set; } = "Smith";
+        public Action SetKeys
+        {
+            get { return () => { }; }
+        }
+        public List<Order> Orders = new List<Order>();
     }
 
 
@@ -145,6 +166,15 @@ namespace DeepShadow.UnitTests
             };
         }
 
+        public static ItemWithTypesToIgnore ItemWithTypesToIgnore()
+        {
+            return new ItemWithTypesToIgnore()
+            {
+                ItemId = 1,
+                Orders = MockData.Orders()
+            };
+        }
+
         public static string ItemWithPropertiesToIgnoreExpected = @"DeepShadow.UnitTests.ItemWithPropertiesToIgnore a1 = new DeepShadow.UnitTests.ItemWithPropertiesToIgnore();
 a1.ItemId = 1;
 a1.Name = @""Smith"";
@@ -152,6 +182,12 @@ a1.Name = @""Smith"";
 return a1;
 ";
 
+        public static string ItemWithTypesToIgnoreExpected = @"DeepShadow.UnitTests.ItemWithTypesToIgnore a1 = new DeepShadow.UnitTests.ItemWithTypesToIgnore();
+a1.ItemId = 1;
+a1.Name = @""Smith"";
+
+return a1;
+";
 
         public static string OrdersExpected = @"List<DeepShadow.UnitTests.Order> list = new List<DeepShadow.UnitTests.Order>();
 

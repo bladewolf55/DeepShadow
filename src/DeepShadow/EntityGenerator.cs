@@ -34,16 +34,16 @@ namespace DeepShadow
         /// <returns></returns>
         public static string GenerateEntitiesFromObject<T>(this T entity, bool toConsole = false) where T : class
         {
-            return GenerateEntitiesFromObject(entity, null, toConsole);
+            return GenerateEntitiesFromObject(entity, toConsole: toConsole);
         }
 
-        public static string GenerateEntitiesFromObject<T>(this T entity, string[] ignoreProperties, bool toConsole = false) where T: class
+        public static string GenerateEntitiesFromObject<T>(this T entity, string[] ignoreProperties, Type[] ignoreTypes, bool toConsole = false) where T: class
         {
             _toConsole = toConsole;
             if (entity == null) throw new ArgumentNullException("entity", "entity cannot be null");
             _generationFromType = GenerationFromType.Object;
             InitVariables();
-            GenerateEntitiesFromObject(entity, parentVariable: "",ignoreProperties: ignoreProperties);
+            GenerateEntitiesFromObject(entity, parentVariable: "", ignoreProperties: ignoreProperties, ignoreTypes: ignoreTypes);
             WriteLine($"\r\nreturn a1;");
             return _result;
 
@@ -93,9 +93,10 @@ namespace DeepShadow
             }
         }
 
-        private static void GenerateEntitiesFromObject<T>(T item, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "", string[] ignoreProperties = null) where T : class
+        private static void GenerateEntitiesFromObject<T>(T item, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "", string[] ignoreProperties = null, Type[] ignoreTypes = null) where T : class
         {
             if (ignoreProperties == null) { ignoreProperties = new string[] { }; }
+            if (ignoreTypes == null) { ignoreTypes = new Type[] { }; }
             var testItem = _startedItems.SingleOrDefault(a => a.Item == item);
             if (testItem != null)
             {
@@ -126,12 +127,16 @@ namespace DeepShadow
                     {
                         continue;
                     }
+                    if (ignoreTypes.Contains(prop.PropertyType))
+                    {
+                        continue;
+                    }
                     object propValue = prop.GetValue(item);
                     string propTypeName = prop.PropertyType.FullName;
                     //is it a parent principle?
                     if (prop.IsParentPrincipal(propValue))
                     {
-                        GenerateEntitiesFromObject(propValue, classVariable, prop.Name);
+                        GenerateEntitiesFromObject(propValue, parentVariable: classVariable, parentPrincipleProperty: prop.Name);
                     }
                     //is it a child collection?
                     else if (prop.IsChildCollection(propValue))
