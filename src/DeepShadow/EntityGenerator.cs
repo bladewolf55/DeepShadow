@@ -31,12 +31,22 @@ namespace DeepShadow
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="entity"></param>
+        /// <param name="toConsole"></param>
         /// <returns></returns>
         public static string GenerateEntitiesFromObject<T>(this T entity, bool toConsole = false) where T : class
         {
-            return GenerateEntitiesFromObject(entity, toConsole: toConsole);
+            return GenerateEntitiesFromObject(entity, ignoreProperties: null, ignoreTypes: null, toConsole: toConsole);
         }
 
+        /// <summary>
+        /// Returns C# code for all entities related to the supplied entity
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="entity"></param>
+        /// <param name="ignoreProperties"></param>
+        /// <param name="ignoreTypes"></param>
+        /// <param name="toConsole"></param>
+        /// <returns></returns>
         public static string GenerateEntitiesFromObject<T>(this T entity, string[] ignoreProperties, Type[] ignoreTypes, bool toConsole = false) where T: class
         {
             _toConsole = toConsole;
@@ -54,8 +64,23 @@ namespace DeepShadow
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="list"></param>
+        /// <param name="toConsole"></param>
         /// <returns></returns>
         public static string GenerateEntitiesFromList<T>(this IEnumerable<T> list, bool toConsole = false) where T : class
+        {
+            return GenerateEntitiesFromList(list, ignoreProperties: null, ignoreTypes: null, toConsole: toConsole);
+        }
+
+
+        /// <summary>
+        /// Returns C# code for all entities related to the supplied list of entities
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="toConsole"></param>
+        /// <returns></returns>
+        public static string GenerateEntitiesFromList<T>(this IEnumerable<T> list, string[] ignoreProperties, Type[] ignoreTypes, 
+            bool toConsole = false) where T : class
         {
             _toConsole = toConsole;
             if (list == null) throw new ArgumentNullException("list", "list cannot be null");
@@ -63,25 +88,28 @@ namespace DeepShadow
             InitVariables();
             string className = list.First().GetType().FullName;
             WriteLine($"List<{className}> list = new List<{className}>();\r\n");
-            GenerateEntitiesFromList(list, parentVariable: "");
+            GenerateEntitiesFromList(list, parentVariable: "",ignoreProperties:ignoreProperties, ignoreTypes: ignoreTypes);
             WriteLine($"\r\nreturn list;");
             return _result;
         }
 
-        private static void GenerateEntitiesFromList<T>(IEnumerable<T> list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
+
+        private static void GenerateEntitiesFromList<T>(IEnumerable<T> list, string parentVariable = "", string parentPrincipleProperty = "", 
+            string parentCollectionProperty = "", string[] ignoreProperties = null, Type[] ignoreTypes = null) where T : class
         {
             foreach (var item in list)
             {
-                GenerateEntitiesFromObject(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
+                GenerateEntitiesFromObject(item, parentVariable, parentPrincipleProperty, parentCollectionProperty,ignoreProperties, ignoreTypes);
             }
         }
 
-        private static void GenerateEntitiesFromList(object list, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "")
+        private static void GenerateEntitiesFromList(object list, string parentVariable = "", string parentPrincipleProperty = "", 
+            string parentCollectionProperty = "", string[] ignoreProperties = null, Type[] ignoreTypes = null)
         {
             int count = 0;
             foreach (var item in (IEnumerable)list)
             {
-                GenerateEntitiesFromObject(item, parentVariable, parentPrincipleProperty, parentCollectionProperty);
+                GenerateEntitiesFromObject(item, parentVariable, parentPrincipleProperty, parentCollectionProperty, ignoreProperties, ignoreTypes);
                 count++;
             }
             if (count == 0)
@@ -153,7 +181,7 @@ namespace DeepShadow
                             string initType = propType.GenericTypeArguments[0].Name;
                             WriteLine($"{classVariable}.{prop.Name} = new {initClass}<{initType}>();");
                         }
-                        GenerateEntitiesFromList(propValue, classVariable, "", prop.Name);
+                        GenerateEntitiesFromList(propValue, classVariable, "", prop.Name,ignoreProperties:ignoreProperties, ignoreTypes: ignoreTypes);
                     }
                     else
                     {
