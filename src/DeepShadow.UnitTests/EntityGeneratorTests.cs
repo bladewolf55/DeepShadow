@@ -18,6 +18,7 @@ namespace DeepShadow.UnitTests
                 var list = MockData.Orders();
                 var actual = list.GenerateEntitiesFromList();
                 Assert.Equal(MockData.OrdersExpected, actual);
+            }
 
             [Fact]
             public void GenerateMatchingEntitiesFromEntity()
@@ -146,7 +147,9 @@ namespace DeepShadow.UnitTests
 
         public static string ItemWithPropertiesToIgnoreExpected = @"DeepShadow.UnitTests.ItemWithPropertiesToIgnore a1 = new DeepShadow.UnitTests.ItemWithPropertiesToIgnore();
 a1.ItemId = 1;
-a1.Name = ""Smith""
+a1.Name = @""Smith"";
+
+return a1;
 ";
 
 
