@@ -34,6 +34,11 @@ namespace DeepShadow
         /// <returns></returns>
         public static string GenerateEntitiesFromObject<T>(this T entity, bool toConsole = false) where T : class
         {
+            return GenerateEntitiesFromObject(entity, null, toConsole);
+        }
+
+        public static string GenerateEntitiesFromObject<T>(this T entity, string[] ignoreProperties, bool toConsole = false) where T: class
+        {
             _toConsole = toConsole;
             if (entity == null) throw new ArgumentNullException("entity", "entity cannot be null");
             _generationFromType = GenerationFromType.Object;
@@ -41,6 +46,7 @@ namespace DeepShadow
             GenerateEntitiesFromObject(entity, parentVariable: "");
             WriteLine($"\r\nreturn a1;");
             return _result;
+
         }
 
         /// <summary>
@@ -87,8 +93,9 @@ namespace DeepShadow
             }
         }
 
-        private static void GenerateEntitiesFromObject<T>(T item, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "") where T : class
+        private static void GenerateEntitiesFromObject<T>(T item, string parentVariable = "", string parentPrincipleProperty = "", string parentCollectionProperty = "", string[] ignoreProperties = null) where T : class
         {
+            if (ignoreProperties == null) { ignoreProperties = new string[] { }; }
             var testItem = _startedItems.SingleOrDefault(a => a.Item == item);
             if (testItem != null)
             {
@@ -115,6 +122,10 @@ namespace DeepShadow
 
                 foreach (var prop in item.GetType().GetProperties())
                 {
+                    if (ignoreProperties.Contains(prop.Name))
+                    {
+                        continue;
+                    }
                     object propValue = prop.GetValue(item);
                     string propTypeName = prop.PropertyType.FullName;
                     //is it a parent principle?

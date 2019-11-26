@@ -178,7 +178,7 @@ Customer.DiscountMatrix = 15.00|13.25|10.973
 etc.
 ```
 
-It's both tedious and error-prone to fabricate values like that when excellent test data is *right there in the database*! And, you already have code in the service to return that data. You just want to generate code to recreate the data in memory.
+It's both tedious and error-prone to fabricate values like that when excellent test data *right there in the database*! And, you already have code in the service to return that data. You just want to generate code to recreate the data in memory.
 
 ## Enter DeepShadow
 

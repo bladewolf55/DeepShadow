@@ -18,7 +18,6 @@ namespace DeepShadow.UnitTests
                 var list = MockData.Orders();
                 var actual = list.GenerateEntitiesFromList();
                 Assert.Equal(MockData.OrdersExpected, actual);
-            }
 
             [Fact]
             public void GenerateMatchingEntitiesFromEntity()
@@ -43,6 +42,15 @@ namespace DeepShadow.UnitTests
                 var actual = entity.GenerateEntitiesFromList();
                 Assert.Equal(MockData.StringListExpected, actual);
             }
+
+            [Fact]
+            public void IgnoreSuppliedProperties()
+            {
+                var entity = MockData.ItemWithPropertiesToIgnore();
+                string[] ignoreProps = { "SetKeys", "LowerCaseName" };
+                var actual = entity.GenerateEntitiesFromObject(ignoreProps);
+                Assert.Equal(MockData.ItemWithPropertiesToIgnoreExpected, actual);
+            }
         }
     }
 
@@ -66,6 +74,16 @@ namespace DeepShadow.UnitTests
         public Customer Customer { get; set; }
     }
 
+    public class ItemWithPropertiesToIgnore
+    {
+        public int ItemId { get; set; }
+        public string Name { get; set; } = "Smith";
+        public Action SetKeys
+        {
+            get { return () => { }; }
+        }
+        public string LowerCaseName { get { return Name.ToLower(); } set { Name = value; } }
+    }
 
 
     public static class MockData
@@ -97,8 +115,6 @@ namespace DeepShadow.UnitTests
             return list;
         }
 
-
-
         public static Customer Customer()
         {
             return Orders().Select(a => a.Customer).Distinct().Single();
@@ -120,6 +136,18 @@ namespace DeepShadow.UnitTests
             return a1;
         }
 
+        public static ItemWithPropertiesToIgnore ItemWithPropertiesToIgnore()
+        {
+            return new ItemWithPropertiesToIgnore()
+            {
+                ItemId = 1
+            };
+        }
+
+        public static string ItemWithPropertiesToIgnoreExpected = @"DeepShadow.UnitTests.ItemWithPropertiesToIgnore a1 = new DeepShadow.UnitTests.ItemWithPropertiesToIgnore();
+a1.ItemId = 1;
+a1.Name = ""Smith""
+";
 
 
         public static string OrdersExpected = @"List<DeepShadow.UnitTests.Order> list = new List<DeepShadow.UnitTests.Order>();
