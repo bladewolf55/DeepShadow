@@ -18,4 +18,4 @@ rem Package
 nuget pack ..\DeepShadow\DeepShadow.csproj -o Package -Prop Configuration=Release
 
 rem Publish
-nuget push Package\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey oy2f4kzoosyr447mxsfacr2evlwghz2e7pfjtyonw323la
+nuget push Package\*.nupkg -Source https://api.nuget.org/v3/index.json -ApiKey %NuGetApi%
